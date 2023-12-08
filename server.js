@@ -21,14 +21,14 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoutes);
 
 // get all todos
-app.get('/todo/:userEmail', async (req, res) => {
-    const { userEmail } = req.params
-    try {
-        const allTodos = await pool.query('SELECT * FROM todos WHERE user_email = $1', [userEmail]);
-        res.json(allTodos.rows)
-    } catch(err) {
-        console.log('error', err)
-    }
-})
+// app.get('/todo/:userEmail', async (req, res) => {
+//     const { userEmail } = req.params
+//     try {
+//         const allTodos = await pool.query('SELECT * FROM todos WHERE user_email = $1', [userEmail]);
+//         res.json(allTodos.rows)
+//     } catch(err) {
+//         console.log('error', err)
+//     }
+// })
 
 app.listen(PORT, () => console.log(`Server running on PORT ${PORT}`));
