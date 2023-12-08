@@ -1,14 +1,22 @@
 const bcrypt = require("bcrypt");
+const { v4: uuidv4 } = require('uuid');
 const validator = require("validator");
 const pool = require('../db');
 
 module.exports = {
-    registerUser: async(username, firstName, lastName, email, password, isAdmin) => {
+    registerUser: async(id, username, firstName, lastName, email, password, isAdmin) => {
         try {
             //Find an email within the database
-            const exists = await pool.query(`SELECT * FROM users WHERE email = $1;`, [email]);
+            const emailExists = await pool.query(`SELECT * FROM users WHERE email = $1;`, [email]);
 
-            if (exists.rowCount === 1) throw Error("Email has been found, please sign in");
+            if (emailExists.rowCount === 1) throw Error("Email has been found, please sign in");
+
+            // const uuidExists = await pool.query(`SELECT * FROM users WHERE id = $1;`, [id]);
+
+            // if (uuidExists.rowCount === 1) {
+            //     id = uuidv4()
+            //     return id;
+            // }
 
             if (!email || !password) throw Error("All fields must be filled");
 
@@ -23,7 +31,6 @@ module.exports = {
             const hash = await bcrypt.hash(password, salt);
 
             const newUser = await pool.query(`INSERT INTO users (username, firstName, lastName, email, hashed_password, isAdmin) VALUES($1, $2, $3, $4, $5, $6);`, [username, firstName, lastName, email, hash, isAdmin]);
-            // console.log("newUser", newUser)
             return newUser;
         } catch (error) {
             console.log("error from model", error)

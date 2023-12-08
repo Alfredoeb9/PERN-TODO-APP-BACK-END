@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require('uuid');
 const { relativeTimeRounding } = require("moment");
 const { registerUser, loginUser } = require("../models/userModel")
 const { emailRegex, getCurrentDateTime } = require("../lib/utils/utils");
@@ -8,8 +9,9 @@ const {
 const userModel = require("../models/userModel");
 const pool = require("../db");
 
-const createToken = async(_id, isAdmin) => {
-    return jwt.sign({ _id, isAdmin: isAdmin }, process.env.JWT_SECRET);
+const createToken = async(id, isAdmin) => {
+    console.log("_id", id)
+    return jwt.sign({ id, isAdmin: isAdmin }, process.env.JWT_SECRET);
 };
 
 const register = async (req, res, next) => {
@@ -19,9 +21,12 @@ const register = async (req, res, next) => {
         const { username, firstName, lastName, email, password, isAdmin } = req.body;
         
         const isValidEamil = await emailRegex(email);
-        if (!isValidEamil) throw Error("Please provide a proper email")
+        if (!isValidEamil) throw Error("Please provide a proper email");
 
-        const newUser = await registerUser(
+        const id = uuidv4();
+
+        await registerUser(
+            id,
             username,
             firstName,
             lastName,
@@ -29,14 +34,13 @@ const register = async (req, res, next) => {
             password,
             isAdmin
         );
-        // Create a token per user
-        const token = await createToken(newUser, false);
 
-        const currentUser = await pool.query(`SELECT * FROM users WHERE email = $1;`, [email])
+        const currentUser = await pool.query(`SELECT * FROM users WHERE email = $1;`, [email]);
+        // Create a token per user
+        const token = await createToken(id);        
 
         const link = `${process.env.REACT_APP_AUTH_BASE_URL}/verify-email/${token}`;
         const fullName = currentUser.rows[0].firstName + " " + currentUser.rows[0].lastName;
-
 
         await sendVerifyingUserEmail(currentUser.rows[0].email, fullName, link)
 
