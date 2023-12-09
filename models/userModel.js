@@ -46,7 +46,7 @@ module.exports = {
         if(!user) throw Error("Incorrect login credentials");
 
         // need to match the password with hash password
-        const passwordMatch = await bcrypt.compare(password, user.rows[0].hash);
+        const passwordMatch = await bcrypt.compare(password, user.rows[0].hashed_password);
 
         if(!passwordMatch) throw Error("Incorrect login credentials");
 
